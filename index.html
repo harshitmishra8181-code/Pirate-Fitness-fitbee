@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Grand Line Pirate Fitness</title>
+
+<style>
+body{
+  font-family: 'Arial', sans-serif;
+  margin:0;
+  background:linear-gradient(#0B2545,#1E90FF);
+  color:white;
+  overflow-x:hidden;
+}
+
+header{
+  background:#0B2545;
+  padding:20px;
+  text-align:center;
+  color:#FFD700;
+  font-size:28px;
+  font-weight:bold;
+  box-shadow: 0 2px 5px black;
+}
+
+nav{
+  display:flex;
+  justify-content:center;
+  background:#071a33;
+}
+
+nav button{
+  background:none;
+  border:none;
+  color:white;
+  padding:15px 25px;
+  cursor:pointer;
+  font-size:16px;
+}
+
+nav button:hover{
+  background:#FFD700;
+  color:black;
+}
+
+.section{
+  display:none;
+  padding:25px;
+  max-width:800px;
+  margin:auto;
+}
+
+.active{
+  display:block;
+}
+
+.card{
+  background:rgba(0,0,0,0.5);
+  padding:20px;
+  margin-top:20px;
+  border-radius:12px;
+  position:relative;
+  animation:fadein 0.8s;
+}
+
+button.action{
+  background:#FFD700;
+  border:none;
+  padding:10px 18px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button.action:hover{
+  background:#FFA500;
+}
+
+.progress{
+  width:100%;
+  background:#333;
+  border-radius:8px;
+  margin-top:10px;
+  overflow:hidden;
+}
+
+.bar{
+  height:20px;
+  background:gold;
+  width:0%;
+  border-radius:8px;
+  transition: width 0.6s;
+}
+
+#map{
+  width:100%;
+  height:300px;
+  background: url('https://i.imgur.com/V6F0Kcz.png') no-repeat center;
+  background-size: contain;
+  margin-top:20px;
+  border-radius:12px;
+}
+
+@keyframes fadein {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+.streak{
+  margin-top:10px;
+  font-size:16px;
+  color:#FFD700;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>🏴‍☠️ Grand Line Pirate Fitness</header>
+
+<nav>
+<button onclick="show('dashboard')">Dashboard</button>
+<button onclick="show('missions')">Missions</button>
+<button onclick="show('water')">Water</button>
+<button onclick="show('motivation')">Motivation</button>
+<button onclick="show('map')">Grand Map</button>
+</nav>
+
+<!-- Dashboard Section -->
+<div id="dashboard" class="section active">
+
+<div class="card">
+<h2>Pirate Rank & XP</h2>
+XP: <span id="xp">0</span><br>
+Rank: <span id="rank">Rookie Pirate</span>
+
+<div class="progress">
+<div class="bar" id="xpBar"></div>
+</div>
+<div class="streak">Streak: <span id="streak">0</span> days</div>
+</div>
+
+<div class="card">
+<h2>Water Progress</h2>
+Glasses: <span id="waterDash">0</span> / 8
+</div>
+
+</div>
+
+<!-- Missions Section -->
+<div id="missions" class="section">
+
+<div class="card">
+<h2>⚔ Physical Mission</h2>
+<p id="physical">Press "New Mission"</p>
+</div>
+
+<div class="card">
+<h2>🤝 Social Mission</h2>
+<p id="social">Press "New Mission"</p>
+</div>
+
+<button class="action" onclick="newMission()">New Mission</button>
+
+</div>
+
+<!-- Water Section -->
+<div id="water" class="section">
+
+<div class="card">
+<h2>💧 Water Tracker</h2>
+Glasses: <span id="water">0</span> / 8<br><br>
+<button class="action" onclick="addWater()">Drink Water</button>
+<button class="action" onclick="resetWater()">Reset</button>
+</div>
+
+</div>
+
+<!-- Motivation Section -->
+<div id="motivation" class="section">
+
+<div class="card">
+<h2>💬 Pirate Motivation</h2>
+<p id="quote">Click for motivation</p>
+<button class="action" onclick="newQuote()">New Quote</button>
+</div>
+
+</div>
+
+<!-- Grand Map Section -->
+<div id="map" class="section"></div>
+
+<script>
+
+// Load localStorage
+let water = parseInt(localStorage.getItem("water") || 0)
+let xp = parseInt(localStorage.getItem("xp") || 0)
+let streak = parseInt(localStorage.getItem("streak") || 0)
+let lastLogin = localStorage.getItem("lastLogin") || ""
+
+// Check for streak reset
+let today = new Date().toDateString()
+if(lastLogin != today){
+    if(lastLogin == new Date(new Date().setDate(new Date().getDate()-1)).toDateString()){
+        streak += 1
+    } else {
+        streak = 1
+    }
+    localStorage.setItem("lastLogin", today)
+    localStorage.setItem("streak", streak)
+}
+
+// Update UI
+function updateUI(){
+    document.getElementById("water").innerText = water
+    document.getElementById("waterDash").innerText = water
+    document.getElementById("xp").innerText = xp
+    document.getElementById("streak").innerText = streak
+    let rank = getRank(xp)
+    document.getElementById("rank").innerText = rank
+    document.getElementById("xpBar").style.width = (xp%100)+"%"
+}
+
+function save(){
+    localStorage.setItem("water", water)
+    localStorage.setItem("xp", xp)
+    localStorage.setItem("streak", streak)
+}
+
+// Navigation
+function show(id){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"))
+    document.getElementById(id).classList.add("active")
+}
+
+// Water functions
+function addWater(){
+    water++
+    if(water>=8){
+        xp += 10
+        alert("Hydration goal complete! +10 XP")
+    }
+    save()
+    updateUI()
+}
+
+function resetWater(){
+    water = 0
+    save()
+    updateUI()
+}
+
+// Missions
+const physicalChallenges=["20 Pushups","30 Squats","1km Run","2 Minute Plank","15 Burpees","10 Minute Stretch","50 Jumping Jacks"]
+const socialChallenges=["Compliment someone","Call a friend","Help someone today","Talk to someone new","Say thank you","Do a kind act"]
+
+function newMission(){
+    let p = Math.floor(Math.random()*physicalChallenges.length)
+    let s = Math.floor(Math.random()*socialChallenges.length)
+    document.getElementById("physical").innerText = physicalChallenges[p]
+    document.getElementById("social").innerText = socialChallenges[s]
+    xp += 20
+    save()
+    updateUI()
+}
+
+// Motivation
+const quotes=[
+"The sea favors the brave.",
+"Discipline builds legends.",
+"Small progress becomes great victories.",
+"Train like a pirate warrior.",
+"Your journey begins today."
+]
+
+function newQuote(){
+    let q = Math.floor(Math.random()*quotes.length)
+    document.getElementById("quote").innerText = quotes[q]
+}
+
+// Rank system
+function getRank(xp){
+    if(xp<50) return "Rookie Pirate"
+    if(xp<120) return "Deck Fighter"
+    if(xp<250) return "Sea Warrior"
+    if(xp<400) return "Grand Line Captain"
+    return "Pirate King"
+}
+
+updateUI()
+
+</script>
+
+</body>
+</html>
